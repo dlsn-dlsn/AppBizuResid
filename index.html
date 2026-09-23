@@ -1,353 +1,38 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f2e38">
-<title>Evolução Pós-Operatória</title>
-<style>
-  :root{
-    --ink:#0f2e38;--ink-2:#294a54;--line:#d6e0e2;--bg:#eaf0f1;--surface:#ffffff;
-    --accent:#0d6b62;--muted:#5c7078;--sel:#0f2e38;--radius:12px;--tap:48px;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0}
-  body{
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%;line-height:1.45;
-    padding-bottom:calc(96px + env(safe-area-inset-bottom));
-  }
-  header{background:var(--ink);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;position:sticky;top:0;z-index:20}
-  header h1{font-size:17px;margin:0;letter-spacing:.2px;font-weight:650}
-  header p{margin:2px 0 0;font-size:12.5px;color:#a9c6cb}
-  main{max-width:640px;margin:0 auto;padding:0 14px}
-
-  .beds{display:flex;gap:8px;padding:14px 0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .bed{flex:0 0 auto;min-width:64px;height:60px;border-radius:var(--radius);border:1.5px solid var(--line);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font:inherit;color:var(--muted);gap:2px;position:relative}
-  .bed .n{font-size:20px;font-weight:700;line-height:1;color:var(--ink)}
-  .bed .lbl{font-size:10px;letter-spacing:.3px}
-  .bed[aria-selected="true"]{border-color:var(--ink);background:var(--ink)}
-  .bed[aria-selected="true"] .n,.bed[aria-selected="true"] .lbl{color:#fff}
-  .bed .dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:0}
-  .bed.filled .dot{opacity:1}
-
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:8px}
-  .field{margin-bottom:14px}
-  .field:last-child{margin-bottom:0}
-  label.lab{display:block;font-size:12.5px;font-weight:650;color:var(--ink-2);margin-bottom:7px}
-  input[type="text"],textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:11px 12px;min-height:var(--tap)}
-  textarea{min-height:70px;resize:vertical;line-height:1.4}
-  input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,107,98,.15)}
-
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .row-po{display:grid;grid-template-columns:92px 1fr;gap:10px}
-
-  .seg{display:flex;gap:8px;flex-wrap:wrap}
-  .seg button{flex:1;min-width:88px;min-height:var(--tap);border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink-2);cursor:pointer}
-  .seg button[aria-pressed="true"]{background:var(--sel);border-color:var(--sel);color:#fff}
-  .seg.sx button{font-weight:700;min-width:0}
-
-  .sub{margin-top:10px;padding:12px;border-left:3px solid var(--accent);background:#f2f8f7;border-radius:0 10px 10px 0}
-  .sub .field{margin-bottom:12px}
-  .sub .field:last-child,.sub .row2 .field{margin-bottom:0}
-
-  .genbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:linear-gradient(#eaf0f1cc,#eaf0f1);padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);backdrop-filter:blur(6px)}
-  .genbar .inner{max-width:640px;margin:0 auto;display:flex;gap:10px}
-  .btn{min-height:52px;border-radius:12px;border:none;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
-  .btn.primary{flex:1;background:var(--accent);color:#fff}
-  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);padding:0 16px}
-  .btn:active{transform:translateY(1px)}
-
-  .result{margin-top:12px}
-  .result h2{font-size:13px;margin:0 0 8px;color:var(--ink-2)}
-  #resumo{width:100%;min-height:170px;font-size:15px;line-height:1.5;border:1.5px solid var(--accent);border-radius:10px;padding:12px;background:#f7fbfa}
-  .actions{display:flex;gap:10px;margin-top:10px}
-  .actions .btn{flex:1}
-  .actions .btn.copy{background:var(--ink);color:#fff}
-  .actions .btn.mail{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
-  .hint{font-size:12px;color:var(--muted);margin-top:10px}
-  details.cfg{margin-top:12px;font-size:13px;color:var(--muted)}
-  details.cfg summary{cursor:pointer;padding:6px 0}
-  details.cfg input{margin-top:6px}
-  .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
-  .toast.show{opacity:1}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
-</head>
-<body>
-<header>
-  <h1>Evolução Pós-Operatória</h1>
-  <p>Enfermaria · Aptos 1 a 5 · dados salvos apenas neste aparelho</p>
-</header>
-
-<main>
-  <div class="beds" id="beds" role="tablist" aria-label="Selecionar leito"></div>
-  <div id="form"></div>
-
-  <div class="result" id="resultWrap" style="display:none">
-    <h2>Resumo da visita (edite se precisar antes de copiar)</h2>
-    <textarea id="resumo" spellcheck="true"></textarea>
-    <div class="actions">
-      <button class="btn copy" id="btnCopy">Copiar</button>
-      <button class="btn mail" id="btnMail">Enviar por e-mail</button>
-    </div>
-    <p class="hint">No computador do serviço: abra o e-mail e cole o texto direto no prontuário.</p>
-  </div>
-
-  <details class="cfg">
-    <summary>E-mail de destino (opcional)</summary>
-    <input type="text" id="destEmail" inputmode="email" placeholder="seuemail@exemplo.com" autocomplete="email">
-  </details>
-</main>
-
-<div class="genbar">
-  <div class="inner">
-    <button class="btn ghost" id="btnClear">Limpar</button>
-    <button class="btn primary" id="btnGen">Gerar resumo</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#123d3b"><title>Ronda · Evolução pós-operatória</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23123d3b'/%3E%3Cpath d='M8 22V10h8a5 5 0 010 10h-2l7 5M8 16h9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E"><style>
+:root{--ink:#193c3b;--muted:#718280;--primary:#185b54;--line:#e2eae6;--bg:#f3f6f4;--mint:#e4f1eb;--shadow:0 10px 35px #183e3610; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);font-size:16px}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer;transition:background .18s,box-shadow .18s,transform .18s}button:active{transform:translateY(1px)}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #54a89b;outline-offset:3px}button{border:0}svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}.top{height:88px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(28px,calc((100vw - 1320px)/2));gap:20px}.brand{display:flex;align-items:center;gap:12px}.mark{width:43px;height:43px;border-radius:14px;background:var(--ink);color:#fff;display:grid;place-items:center;box-shadow:0 5px 10px #193c3b22}.mark svg{width:29px;height:29px}.brand-name{font-size:28px;letter-spacing:-1.2px;font-weight:650}.brand small{display:block;font-size:11px;letter-spacing:2px;color:var(--muted);margin-top:1px}.top-right{display:flex;gap:24px;align-items:center;font-size:14px;color:var(--muted)}.private{display:flex;gap:7px;align-items:center}.avatar{height:38px;width:38px;border:1px solid #dce8e1;border-radius:50%;background:#edf4ef;display:grid;place-items:center;color:var(--primary)}main{max-width:1320px;margin:auto;padding:34px 28px 125px}.heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:28px}.eyebrow{font-size:12px;font-weight:650;letter-spacing:1.8px;color:#6e8680;text-transform:uppercase}h1{font-size:30px;letter-spacing:-1px;margin:7px 0 8px;font-weight:620}p{margin:0;color:var(--muted);line-height:1.6}.btn{min-height:48px;padding:12px 19px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:600;font-size:14px;background:#fff;border:1px solid var(--line);color:var(--ink);box-shadow:0 3px 6px #163c3304}.btn:hover{background:#f0f5f2}.primary{background:var(--primary);color:white;border-color:var(--primary);box-shadow:0 6px 15px #185b5424}.primary:hover{background:#104c45}.beds{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:27px}.bed{position:relative;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:17px;text-align:left;padding:16px;min-height:83px;color:var(--ink);box-shadow:0 3px 6px #163c3303}.bed.active{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:0 8px 20px #193c3b24}.bed-no{width:39px;height:39px;border-radius:12px;display:grid;place-items:center;background:#f0f5f2;color:#83958c;font-weight:600;font-size:17px}.active .bed-no{background:#ffffff15;color:#c9e5d8}.bed strong{font-size:14px;display:block;margin-bottom:5px}.bed small{font-size:12px;color:#8a9993;display:block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.active small{color:#b9ccc5}.dot{position:absolute;right:12px;top:12px;width:6px;height:6px;border-radius:50%;background:#79bca4}.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:25px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:21px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}.card-head{padding:22px 25px 18px;display:flex;gap:12px;align-items:center}.icon-tile{height:35px;width:35px;display:grid;place-items:center;background:#eef5f1;border:1px solid #e4ede7;border-radius:11px;color:#4c7e6c}.card-head h2{font-size:16px;letter-spacing:-.3px;margin:0 0 3px;font-weight:650}.card-head p{font-size:12px}.section-no{margin-left:auto;font-size:12px;color:#a1b0a8}.content{padding:0 25px 25px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.wide{grid-column:1/-1}label,.field-label{display:block;font-size:14px;font-weight:550;margin-bottom:9px}input,textarea,select{width:100%;border:1px solid #dfe7e2;background:#fafcfb;border-radius:11px;padding:13px 14px;color:var(--ink);min-height:48px}input::placeholder,textarea::placeholder{color:#9ba8a1}textarea{resize:vertical;line-height:1.7}.identity-grid{grid-template-columns:1.2fr 1fr}.subtle{font-size:12px;font-weight:400;color:var(--muted)}.period{display:flex;background:#e9efeb;border-radius:13px;padding:5px;gap:5px;margin-bottom:21px}.period button{flex:1;min-height:46px;border-radius:10px;color:#71817a;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600}.period button.active{background:white;color:var(--primary);box-shadow:0 2px 7px #234d3312}.period-wrap{display:flex;align-items:center;gap:10px}.assess-label{margin:0 0 18px;font-size:14px;color:#6f847b}.assessment-row{padding:17px 0;border-bottom:1px solid #edf1ee;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.assessment-row:first-child{padding-top:0}.assessment-row:last-child{border:0;padding-bottom:0}.assessment-row .field-label{margin:0}.choices{display:flex;gap:7px;flex-wrap:wrap}.choice{min-width:72px;min-height:48px;border:1px solid #e0e7e2;border-radius:11px;background:#fff;color:#74857d;font-size:14px;padding:10px 15px}.choice:hover{background:#f5f9f6}.choice.selected{background:var(--mint);color:#20634e;border-color:#a9ccbc;box-shadow:0 2px 4px #254b3310}.detail{width:100%;padding:17px;background:#f3f8f5;border:1px solid #e3ede6;border-left:3px solid #94b9a6;border-radius:12px;margin-top:2px}.detail .field-label{margin-bottom:10px}.detail .grid{gap:12px}.detail label{font-size:13px}.side{position:sticky;top:24px}.preview-head{padding:23px 23px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.preview-head h2{margin:0;font-size:16px}.badge{font-size:11px;padding:6px 9px;background:#f1f5f2;border-radius:7px;color:#6f897b}.paper{margin:20px;background:#fbfcfa;border:1px solid #e6ebe4;border-radius:13px;padding:18px}.paper-top{display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px;color:#7e9186;padding-bottom:15px;border-bottom:1px solid var(--line)}.paper textarea{border:0;background:transparent;padding:18px 0 0;font-size:14px;min-height:240px;line-height:1.85;box-shadow:none;resize:vertical}.preview-empty{padding:38px 0 28px;text-align:center}.preview-empty svg{width:34px;height:34px;color:#a4b8ab;margin-bottom:15px}.preview-empty strong{display:block;font-size:14px;font-weight:550;margin-bottom:8px}.preview-empty p{font-size:13px;max-width:220px;margin:auto}.preview-actions{padding:0 20px 20px;display:flex;gap:8px}.preview-actions .btn{flex:1;padding:10px;font-size:13px}.hint{font-size:12px;display:flex;gap:9px;line-height:1.7;padding:0 9px;color:#819087}.hint svg{width:17px;height:17px;margin-top:2px}.saved{font-size:12px;display:flex;align-items:center;gap:6px;color:#768b7e}.saved svg{width:16px;height:16px}.footer{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(18px);border-top:1px solid #e2eae3;z-index:5;padding-bottom:env(safe-area-inset-bottom)}.footer-inner{max-width:1320px;margin:auto;display:flex;justify-content:space-between;align-items:center;padding:15px 28px;gap:16px}.footer-buttons{display:flex;gap:12px}.clear{background:transparent;box-shadow:none;border-color:transparent;color:#7e8982}.footer .primary{padding-left:24px;padding-right:24px}.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#173e36;color:white;padding:13px 20px;border-radius:14px;box-shadow:var(--shadow);z-index:20;font-size:14px;max-width:90vw;text-align:center}dialog{border:1px solid var(--line);border-radius:22px;max-width:700px;width:calc(100% - 32px);padding:26px;color:var(--ink);box-shadow:0 25px 100px #102f3440}dialog::backdrop{background:#112c2a70;backdrop-filter:blur(5px)}dialog h2{margin:0;font-size:22px}dialog header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}dialog textarea{margin:16px 0;min-height:260px}.modal-actions{display:flex;gap:10px;justify-content:flex-end}.email-setting{padding:0 20px 20px}.email-setting input{font-size:13px}.email-setting label{font-size:12px;color:var(--muted)}[hidden]{display:none!important}@media(min-width:1500px){main{padding-top:42px}.top{height:94px}}@media(max-width:1050px){.layout{grid-template-columns:minmax(0,1fr) 310px}.bed{padding:12px;gap:8px}.bed-no{width:30px;height:34px}.content,.card-head{padding-left:20px;padding-right:20px}.bed small{max-width:95px}}@media(max-width:800px){.layout{grid-template-columns:1fr}.side{position:static}.beds{gap:8px}.bed{display:block;text-align:center;padding:12px 5px;min-height:75px}.bed-no{display:none}.bed strong{font-size:13px}.bed small{max-width:100%;font-size:11px}.top{height:75px;padding:0 20px}.top-right .date{display:none}main{padding:26px 18px 115px}.heading{align-items:flex-end}.heading h1{font-size:26px}.heading p{font-size:13px}.heading .btn{font-size:0;padding:12px}.heading .btn svg{width:22px;height:22px}.eyebrow{font-size:10px}.footer-inner{padding:12px 18px}.footer .saved{max-width:105px;font-size:11px}.top-right{gap:12px}.private{font-size:11px}.private svg{width:16px}.avatar{display:none}.side .hint{margin-bottom:15px}.paper textarea{min-height:190px}}@media(max-width:430px){.grid{gap:14px}.identity-grid{grid-template-columns:1fr 1fr}.identity-grid .patient-name{grid-column:1/-1}.choice{padding:10px 12px;min-width:67px}.card-head{padding-top:19px}.content{padding:0 18px 21px}.card-head{padding-left:18px;padding-right:18px}.footer-buttons{gap:3px}.footer .btn{font-size:13px;padding:11px}.footer .primary{padding:11px 16px}.assessment-row{gap:11px}.heading{gap:10px}.brand-name{font-size:25px}.brand small{font-size:9px}.mark{width:39px;height:39px}}@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style></head><body>
+<header class="top"><div class="brand"><div class="mark"><svg viewBox="0 0 32 32"><path d="M8 24V8h9a6 6 0 0 1 0 12h-3l9 7M8 14h10"/></svg></div><div><div class="brand-name">ronda<span style="color:#70a992">.</span></div><small>CUIDADO EM CONTINUIDADE</small></div></div><div class="top-right"><span class="date" id="date"></span><span class="private" id="privacy"></span><span class="avatar" id="avatar"></span></div></header>
+<main><div class="heading"><div><div class="eyebrow">Enfermaria · Pós-operatório</div><h1>Sua visita, bem registrada.</h1><p>Um paciente de cada vez. Todo o cuidado em um só lugar.</p></div><button class="btn" id="compileBtn"></button></div><h2 style="font-size:16px;font-weight:650;margin:0 0 13px;letter-spacing:-.3px">Apartamentos</h2><nav class="beds" id="beds" aria-label="Apartamentos"></nav><div class="layout"><div>
+<section class="card"><div class="card-head"><span class="icon-tile" data-icon="user"></span><div><h2>Identificação do paciente</h2><p id="patientSubtitle">Apartamento 1</p></div><span class="section-no">01</span></div><div class="content grid identity-grid" id="identity"></div></section>
+<section class="card"><div class="card-head"><span class="icon-tile" data-icon="pulse"></span><div><h2>Avaliação clínica</h2><p>Registre os achados da sua visita.</p></div><span class="section-no">02</span></div><div class="content"><div class="period" id="period" role="group" aria-label="Período da avaliação"></div><div id="assessment"></div></div></section>
+<section class="card"><div class="card-head"><span class="icon-tile" data-icon="note"></span><div><h2>Conduta e observações</h2><p>Os próximos passos do cuidado.</p></div><span class="section-no">03</span></div><div class="content grid"><div class="wide"><label for="conduct">Conduta</label><textarea id="conduct" rows="2" placeholder="Descreva a conduta para este paciente..."></textarea></div><div class="wide"><label for="notes">Notas <span class="subtle">· opcional</span></label><textarea id="notes" rows="2" placeholder="Outras observações relevantes..."></textarea></div></div></section>
+</div><aside class="side"><section class="card"><div class="preview-head"><h2>Evolução</h2><span class="badge">EDITÁVEL</span></div><div class="paper"><div class="paper-top"><span id="previewTitle">APARTAMENTO 01</span><span id="previewPeriod">NOTURNA</span></div><div id="empty" class="preview-empty"></div><textarea id="summary" aria-label="Texto da evolução editável" placeholder="Sua evolução aparecerá aqui." hidden></textarea></div><div class="preview-actions"><button class="btn" id="copyBtn"></button><button class="btn" id="emailBtn"></button></div><div class="email-setting"><label for="email">E-mail de destino <span class="subtle">· opcional</span></label><input id="email" type="email" placeholder="nome@exemplo.com"></div></section><div class="hint" id="hint"></div></aside></div></main>
+<footer class="footer"><div class="footer-inner"><span class="saved" id="saved"></span><div class="footer-buttons"><button class="btn clear" id="clearBtn"></button><button class="btn primary" id="generateBtn"></button></div></div></footer><div role="status" class="toast" id="toast" hidden></div>
+<dialog id="compile"><header><h2>Compilado da visita</h2><button class="btn" id="closeCompile" aria-label="Fechar">✕</button></header><p>Uma evolução por apartamento, reunindo as duas visitas.</p><textarea id="compiled" aria-label="Compilado editável"></textarea><div class="modal-actions"><button class="btn" id="emailAll">Enviar por e-mail</button><button class="btn primary" id="copyAll">Copiar compilado</button></div></dialog>
 <script>
-(function(){
-  "use strict";
-  var STORE="evolucao_posop_v2";
+const icons={user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/>',pulse:'<path d="M2 12h5l3-8 4 16 3-8h5"/>',note:'<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h4"/>',shield:'<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6z"/><path d="m8 12 3 3 5-6"/>',moon:'<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/>',copy:'<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/>',trash:'<path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',spark:'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/>',check:'<path d="m5 12 4 4L19 6"/>',layers:'<path d="m12 3 10 5-10 5L2 8zM2 12l10 5 10-5M2 17l10 5 10-5"/>'};const icon=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[n]||icons.note}</svg>`;const $=id=>document.getElementById(id);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const blank=()=>({name:'',record:'',sex:'',surgery:'',night:{},day:{}});const key='ronda-premium-v1';let state={beds:Array.from({length:5},blank),email:''},bed=0,period='night',storageOK=true;try{const s=JSON.parse(localStorage.getItem(key));if(s&&Array.isArray(s.beds)&&s.beds.length===5){state.beds=s.beds.map(x=>({...blank(),...x,night:x.night||{},day:x.day||{}}));state.email=typeof s.email==='string'?s.email:''}}catch(e){storageOK=false}const patient=()=>state.beds[bed];const visit=()=>patient()[period];let toastTimer;function toast(s){$('toast').textContent=s;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,3200)}function save(){try{localStorage.setItem(key,JSON.stringify(state));storageOK=true}catch(e){storageOK=false}$('saved').innerHTML=icon(storageOK?'check':'note')+(storageOK?'Salvo neste aparelho':'Salvo só nesta sessão')}
+function field(id,label,placeholder='',value='',scope='identity',wide=''){return `<div class="${wide}"><label for="${scope}-${id}">${label}</label><input id="${scope}-${id}" data-scope="${scope}" data-key="${id}" value="${esc(value)}" placeholder="${esc(placeholder)}" autocomplete="off"></div>`}function choices(k,values,data,scope='clinical'){return `<div class="choices" role="group" aria-label="${esc(k)}">${values.map(v=>`<button class="choice ${data[k]===v?'selected':''}" aria-pressed="${data[k]===v}" data-choice="${k}" data-scope="${scope}" data-value="${esc(v)}">${esc(v)}</button>`).join('')}</div>`}function row(label,k,values,data,scope='clinical',detail=''){return `<div class="assessment-row"><span class="field-label">${label}</span>${choices(k,values,data,scope)}${detail?`<div class="detail">${detail}</div>`:''}</div>`}
+function renderBeds(){$('beds').innerHTML=state.beds.map((p,i)=>`<button class="bed ${i===bed?'active':''}" data-bed="${i}" aria-pressed="${i===bed}"><span><strong>AP${i+1}</strong><small>${esc(p.name||'Aguardando visita')}</small></span>${p.name?'<span class="dot"></span>':''}</button>`).join('')}
+function clinical(data,scope){let out='';out+=row('Acompanhante','companion',['Sim','Não'],data,scope,data.companion==='Sim'?`<div class="grid">${field('companionName','Nome','Nome do acompanhante',data.companionName,scope)}${field('kinship','Parentesco','Ex.: esposa',data.kinship,scope)}</div>`:'');out+=row('Drenos','drain',['Sim','Não'],data,scope,data.drain==='Sim'?`<span class="field-label">Funcionamento</span>${choices('function',['Funcionante','Não funcionante'],data,scope)}<span class="field-label" style="margin-top:16px">Secreção</span>${choices('secretion',['Hemática','Serohemática','Hialina'],data,scope)}`:'');out+=row('Sonda vesical (SVD)','svd',['Sim','Não'],data,scope);out+=row('Diurese','urine',['Presente','Ausente'],data,scope);out+=row('Aceitação da dieta','food',['Normal','Diminuída'],data,scope);out+=row('Náuseas ou vômitos','nvpo',['Sim','Não'],data,scope);out+=row('Queixas álgicas','pain',['Sim','Não'],data,scope,data.pain==='Sim'?field('location','Localização da dor','Ex.: ferida operatória',data.location,scope):'');out+=row('Sinais vitais','vitals',['Estáveis','Alterados'],data,scope,data.vitals==='Alterados'?`<span class="field-label">Pressão arterial</span>${choices('bp',['Hipertensão','Hipotensão'],data,scope)}<div style="margin:12px 0 18px">${field('bpValue','Valor aferido (mmHg)','Ex.: 160/90',data.bpValue,scope)}</div><span class="field-label">Frequência cardíaca</span>${choices('hr',['Taquicardia','Bradicardia'],data,scope)}<div style="margin-top:12px">${field('hrValue','Valor aferido (bpm)','Ex.: 110',data.hrValue,scope)}</div>`:'');return out}
+const comparisonFields={companion:'acompanhante',drain:'drenos',svd:'SVD',urine:'diurese',food:'dieta',nvpo:'náuseas ou vômitos',pain:'dor',vitals:'sinais vitais'};
+function compareVisits(p){const n=p.night,d=p.day;let changed=[],missing=false,compared=0;const check=(k,label)=>{const a=String(n[k]||'').trim(),b=String(d[k]||'').trim();if(!a||!b){missing=true;return}compared++;if(a!==b)changed.push(label)};Object.entries(comparisonFields).forEach(([k,label])=>check(k,label));for(const [parent,value,fields] of [['companion','Sim',[['companionName','nome do acompanhante'],['kinship','parentesco']]],['drain','Sim',[['function','funcionamento do dreno'],['secretion','secreção']]],['pain','Sim',[['location','localização da dor']]],['vitals','Alterados',[['bp','pressão arterial'],['bpValue','valor da pressão'],['hr','frequência cardíaca'],['hrValue','valor da frequência cardíaca']]]]){if(n[parent]===value&&d[parent]===value)fields.forEach(([k,label])=>{if(n[k]||d[k])check(k,label)})}return {changed,complete:!missing&&compared>0}}
+function comparisonText(p){const c=compareVisits(p);return c.changed.length?'Diferenças em relação à visita noturna: '+c.changed.join(', ')+'.':c.complete?'Os itens registrados são iguais aos da visita noturna.':'Comparação incompleta: preencha os mesmos itens nas duas visitas.'}
+function changeStatus(p){const c=compareVisits(p);return c.changed.length?'Sim':p.day.changes||(c.complete?'Não':'')}
+function refreshComparison(){if(period!=='day')return;const message=$('comparison');if(message)message.textContent=comparisonText(patient());const detail=$('changeDetail');if(detail)detail.hidden=changeStatus(patient())!=='Sim'}
+function renderClinical(){const v=visit();if(period==='night')$('assessment').innerHTML=clinical(v,'clinical');else{$('assessment').innerHTML='<p class="assess-label">Achados da visita diurna</p>'+clinical(v,'clinical')+row('Sem intercorrências no período noturno?','uneventful',['Sim','Não'],v,'clinical')+(v.uneventful==='Não'?'<div class="detail"><label for="overnightDescription">Intercorrências durante a noite</label><textarea id="overnightDescription" data-scope="clinical" data-key="overnightDescription" rows="3" placeholder="Descreva as intercorrências...">'+esc(v.overnightDescription||'')+'</textarea></div>':'')+'<p id="comparison" class="detail" style="margin-top:20px;font-size:14px" aria-live="polite"></p>'+row('Alterações durante a visita diurna?','changes',['Sim','Não'],{changes:changeStatus(patient())},'clinical')+'<div id="changeDetail" class="detail" style="margin-top:16px"><label for="changeDescription">Descreva a alteração</label><textarea id="changeDescription" data-scope="clinical" data-key="changeDescription" rows="3" placeholder="Descreva o que mudou durante a visita diurna...">'+esc(v.changeDescription||'')+'</textarea></div>';refreshComparison()}}
 
-  function blank(){return{
-    nome:"",prontuario:"",sexo:"",posop:"",cirurgia:"",
-    acompanhante:"",acompNome:"",acompParentesco:"",
-    drenos:"",drenoFuncao:"",drenoSecrecao:"",
-    svd:"",diurese:"",alimentacao:"",nvpo:"",
-    algicas:"",algiaLocal:"",conduta:"",notas:""
-  };}
+function render(){renderBeds();const p=patient();$('patientSubtitle').textContent='Apartamento '+(bed+1);$('identity').innerHTML=field('name','Nome do paciente','Nome completo',p.name,'identity','patient-name')+field('record','Prontuário','Nº do prontuário',p.record)+`<div><label>Sexo <span class="subtle">· não incluído no texto</span></label>${choices('sex',['M','F'],p,'identity')}</div>`+field('surgery','Cirurgia','Descreva a cirurgia',p.surgery,'identity','wide');$('period').innerHTML=['night','day'].map(x=>`<button data-period="${x}" class="${period===x?'active':''}" aria-pressed="${period===x}">${icon(x==='night'?'moon':'sun')}${x==='night'?'Visita noturna':'Visita diurna'}</button>`).join('');renderClinical();$('conduct').value=visit().conduct||'';$('notes').value=visit().notes||'';$('summary').value=p.summary||'';$('summary').hidden=!p.summary;$('empty').hidden=!!p.summary;$('previewTitle').textContent='APARTAMENTO '+String(bed+1).padStart(2,'0');$('previewPeriod').textContent='CONSOLIDADA';}
+function statusText(v){const a=[];if(v.companion)a.push(v.companion==='Sim'?'com seu acompanhante'+([v.companionName,v.kinship].filter(Boolean).length?` (${[v.companionName,v.kinship].filter(Boolean).join(', ')})`:''):'sem acompanhante');let b=[];if(v.drain)b.push(v.drain==='Sim'?'com dreno(s)'+(v.function?', '+v.function.toLowerCase():'')+(v.secretion?', secreção '+v.secretion.toLowerCase():''):'sem drenos');if(v.svd)b.push(v.svd==='Sim'?'com SVD':'sem SVD');if(v.urine)b.push('diurese '+v.urine.toLowerCase());if(v.food)b.push(v.food==='Normal'?'aceitando dieta normalmente':'com aceitação diminuída da dieta');if(v.vitals)b.push(v.vitals==='Estáveis'?'sinais vitais estáveis':'sinais vitais alterados'+(v.bp?', '+v.bp.toLowerCase():'')+(v.bpValue?' (PA '+v.bpValue+' mmHg)':'')+(v.hr?', '+v.hr.toLowerCase():'')+(v.hrValue?' (FC '+v.hrValue+' bpm)':''));if(b.length)a.push('no momento '+b.join(', '));let s=a.join(', ');const symptoms=[];if(v.nvpo)symptoms.push(v.nvpo==='Sim'?'apresenta náuseas e/ou vômitos pós-operatórios':'nega náuseas ou vômitos pós-operatórios');if(v.pain)symptoms.push(v.pain==='Sim'?'refere queixas álgicas'+(v.location?' em '+v.location:''):'nega queixas álgicas');return {status:s,symptoms:symptoms.join(', ')}}
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';const sentence=s=>s.trim().replace(/[.!?]+$/,'')+'.';function generate(p){const n=p.night,d=p.day,t=statusText(n);let a=[p.name,'POI'+(p.surgery?' de '+p.surgery:''),'em leito de apartamento'];if(t.status)a.push(t.status);let result='##Evolução Anestesiologia##\n\n'+sentence(a.filter(Boolean).join(', '));if(t.symptoms)result+='\n'+sentence(cap(t.symptoms));let follow=[];if(d.uneventful==='Não')follow.push(d.overnightDescription?.trim()?'Durante o período noturno, apresentou intercorrências: '+d.overnightDescription.trim().replace(/[.!?]+$/,''):'Durante o período noturno, apresentou intercorrências');else if(d.uneventful==='Sim')follow.push('Sem intercorrências durante o período noturno');
+const groups={companion:['companionName','kinship'],drain:['function','secretion'],pain:['location'],vitals:['bp','bpValue','hr','hrValue']};const active=(k,v)=>k==='vitals'?v==='Alterados':v==='Sim';let altered={},unchanged={},newlyRecorded={};for(const k of Object.keys(comparisonFields)){if(!d[k])continue;let target;if(!n[k])target=newlyRecorded;else{const detailDiff=n[k]===d[k]&&active(k,d[k])&&(groups[k]||[]).some(f=>(n[f]||'').trim()!==(d[f]||'').trim());target=n[k]!==d[k]||detailDiff?altered:unchanged}target[k]=d[k];if(active(k,d[k]))for(const f of groups[k]||[])if(d[f])target[f]=d[f]}
+const prose=v=>{const t=statusText(v);return [t.status,t.symptoms].filter(Boolean).join(', ').replace(/no momento /g,'')};const flowing=text=>text.replace(/\bnega /g,'negando ').replace(/\brefere /g,'referindo ').replace(/\bapresenta /g,'apresentando ');const changes=flowing(prose(altered)),same=flowing(prose(unchanged)),additional=flowing(prose(newlyRecorded));if(changes)follow.push((/^(negando|referindo|apresentando) /.test(changes)?'':'apresentando-se ')+changes+' durante o período diurno');if(!changes&&changeStatus(p)==='Não')follow.push('sem alterações do quadro na visita diurna');if(same)follow.push((/^(negando|referindo|apresentando) /.test(same)?'permanecendo ': 'mantendo-se ')+same);if(additional)follow.push('na avaliação diurna, '+additional);if(follow.length)result+='\n\n'+sentence(cap(follow.join(', ')));if(changeStatus(p)==='Sim'&&d.changeDescription?.trim()){const detail=d.changeDescription.trim();result+=' '+(/^(melhora|piora)\b/i.test(detail)?sentence('Evoluindo com '+detail[0].toLowerCase()+detail.slice(1)):sentence(detail));}
 
-  var state={current:1,destEmail:"",aptos:{}};
-  for(var i=1;i<=5;i++)state.aptos[i]=blank();
+for(const [key,label] of [['conduct','CD'],['notes','Notas']]){const first=(n[key]||'').trim(),last=(d[key]||'').trim();if(!first&&!last)continue;result+='\n\n'+(key==='notes'?'## Notas\n':'CD: ');if(first&&last&&first!==last)result+='Noturna: '+sentence(first)+'\nDiurna: '+sentence(last);else result+=sentence(last||first)}return result}
 
-  function load(){
-    try{var raw=localStorage.getItem(STORE);if(raw){var d=JSON.parse(raw);
-      if(d&&d.aptos){for(var k=1;k<=5;k++){var a=d.aptos[k]||{};var b=blank();for(var f in b){if(a[f]!=null)b[f]=a[f];}state.aptos[k]=b;}}
-      if(d.destEmail)state.destEmail=d.destEmail;
-      if(d.current)state.current=d.current;
-    }}catch(e){}
-  }
-  function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}}
-
-  var $=function(id){return document.getElementById(id);};
-  var formEl=$("form"),bedsEl=$("beds");
-
-  function renderBeds(){
-    bedsEl.innerHTML="";
-    for(var n=1;n<=5;n++){(function(n){
-      var b=document.createElement("button");
-      b.className="bed"+(state.aptos[n].nome.trim()?" filled":"");
-      b.setAttribute("role","tab");
-      b.setAttribute("aria-selected",state.current===n?"true":"false");
-      b.innerHTML='<span class="n">'+n+'</span><span class="lbl">Apto</span><span class="dot"></span>';
-      b.onclick=function(){state.current=n;save();renderBeds();renderForm();hideResult();};
-      bedsEl.appendChild(b);
-    })(n);}
-  }
-
-  function seg(opts,current,onpick){
-    var wrap=document.createElement("div");wrap.className="seg"+(opts.join()==="M,F"?" sx":"");
-    opts.forEach(function(opt){
-      var btn=document.createElement("button");btn.type="button";btn.textContent=opt;
-      btn.setAttribute("aria-pressed",current===opt?"true":"false");
-      btn.onclick=function(){
-        var val=(current===opt)?"":opt;
-        [].forEach.call(wrap.children,function(c){c.setAttribute("aria-pressed",c.textContent===val?"true":"false");});
-        onpick(val);
-      };
-      wrap.appendChild(btn);
-    });
-    return wrap;
-  }
-
-  function textField(label,key,val,ph){
-    var f=document.createElement("div");f.className="field";
-    var l=document.createElement("label");l.className="lab";l.textContent=label;f.appendChild(l);
-    var inp=document.createElement("input");inp.type="text";inp.value=val;inp.placeholder=ph||"";
-    inp.oninput=function(){state.aptos[state.current][key]=inp.value;save();if(key==="nome")markBed();};
-    f.appendChild(inp);return f;
-  }
-  function areaField(label,key,val,ph){
-    var f=document.createElement("div");f.className="field";
-    var l=document.createElement("label");l.className="lab";l.textContent=label;f.appendChild(l);
-    var ta=document.createElement("textarea");ta.value=val;ta.placeholder=ph||"";
-    ta.oninput=function(){state.aptos[state.current][key]=ta.value;save();};
-    f.appendChild(ta);return f;
-  }
-  function labeledSeg(label,key,opts){
-    var p=state.aptos[state.current];
-    var f=document.createElement("div");f.className="field";
-    var l=document.createElement("label");l.className="lab";l.textContent=label;f.appendChild(l);
-    f.appendChild(seg(opts,p[key],function(v){p[key]=v;save();}));
-    return f;
-  }
-  function plainToggle(key,label,opts){
-    var p=state.aptos[state.current];
-    var f=document.createElement("div");f.className="field";
-    var l=document.createElement("label");l.className="lab";l.textContent=label;f.appendChild(l);
-    f.appendChild(seg(opts,p[key],function(v){p[key]=v;save();}));
-    return f;
-  }
-  function revealToggle(key,label,opts,openWhenSim,buildSub){
-    var p=state.aptos[state.current];
-    var f=document.createElement("div");f.className="field";
-    var l=document.createElement("label");l.className="lab";l.textContent=label;f.appendChild(l);
-    f.appendChild(seg(opts,p[key],function(v){p[key]=v;save();renderForm();}));
-    if(p[key]===openWhenSim){
-      var sub=document.createElement("div");sub.className="sub";
-      buildSub(sub,p);
-      f.appendChild(sub);
-    }
-    return f;
-  }
-
-  function renderForm(){
-    var p=state.aptos[state.current];
-    formEl.innerHTML="";
-    var card=document.createElement("div");card.className="card";
-
-    card.appendChild(textField("Nome","nome",p.nome,"Nome do paciente"));
-
-    var row=document.createElement("div");row.className="row2";
-    row.appendChild(textField("Prontuário","prontuario",p.prontuario,"Nº do prontuário"));
-    row.appendChild(labeledSeg("Sexo","sexo",["M","F"]));
-    card.appendChild(row);
-
-    var poRow=document.createElement("div");poRow.className="row-po";
-    poRow.appendChild(textField("Pós-operatório","posop",p.posop,"Ex.: POI, PO1"));
-    poRow.appendChild(textField("Cirurgia","cirurgia",p.cirurgia,"(descreva a cirurgia)"));
-    card.appendChild(poRow);
-
-    card.appendChild(revealToggle("acompanhante","Acompanhante",["Sim","Não"],"Sim",function(sub){
-      var r=document.createElement("div");r.className="row2";
-      r.appendChild(textField("Nome do acompanhante","acompNome",p.acompNome,"Nome"));
-      r.appendChild(textField("Parentesco","acompParentesco",p.acompParentesco,"Ex.: esposa, filho"));
-      sub.appendChild(r);
-    }));
-
-    card.appendChild(revealToggle("drenos","Drenos",["Sim","Não"],"Sim",function(sub){
-      var f1=document.createElement("div");f1.className="field";
-      var l1=document.createElement("label");l1.className="lab";l1.textContent="Funcionamento";f1.appendChild(l1);
-      f1.appendChild(seg(["Funcionante","Não funcionante"],p.drenoFuncao,function(v){p.drenoFuncao=v;save();}));
-      sub.appendChild(f1);
-      var f2=document.createElement("div");f2.className="field";
-      var l2=document.createElement("label");l2.className="lab";l2.textContent="Secreção";f2.appendChild(l2);
-      f2.appendChild(seg(["Hemática","Serohemática","Hialina"],p.drenoSecrecao,function(v){p.drenoSecrecao=v;save();}));
-      sub.appendChild(f2);
-    }));
-
-    card.appendChild(plainToggle("svd","SVD",["Sim","Não"]));
-    card.appendChild(plainToggle("diurese","Diurese",["Presente","Ausente"]));
-    card.appendChild(plainToggle("alimentacao","Alimentação",["Normal","Diminuída"]));
-    card.appendChild(plainToggle("nvpo","NVPO",["Sim","Não"]));
-
-    card.appendChild(revealToggle("algicas","Queixas álgicas",["Sim","Não"],"Sim",function(sub){
-      var f=document.createElement("div");f.className="field";
-      var l=document.createElement("label");l.className="lab";l.textContent="Localização";f.appendChild(l);
-      var ta=document.createElement("textarea");ta.value=p.algiaLocal;ta.placeholder="Descreva onde";
-      ta.oninput=function(){p.algiaLocal=ta.value;save();};
-      f.appendChild(ta);sub.appendChild(f);
-    }));
-
-    card.appendChild(areaField("Conduta","conduta",p.conduta,"Conduta adotada nesta visita"));
-    card.appendChild(areaField("Notas","notas",p.notas,"Descrição livre"));
-    formEl.appendChild(card);
-  }
-
-  function markBed(){
-    var b=bedsEl.children[state.current-1];if(!b)return;
-    if(state.aptos[state.current].nome.trim())b.classList.add("filled");else b.classList.remove("filled");
-  }
-
-  // ---- Gerador do resumo (roda no aparelho) ----
-  function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
-  function stripDot(s){return s.replace(/[.\s]+$/,"");}
-
-  function build(n){
-    var p=state.aptos[n];
-    var head=[];
-    head.push(p.nome.trim()||"Paciente");
-
-    var po="";
-    if(p.posop.trim()&&p.cirurgia.trim())po=p.posop.trim()+" de "+p.cirurgia.trim();
-    else if(p.posop.trim())po=p.posop.trim();
-    else if(p.cirurgia.trim())po="pós-operatório de "+p.cirurgia.trim();
-    if(po)head.push(po);
-
-    head.push("em leito de apartamento");
-
-    if(p.acompanhante==="Sim"){
-      var det=[];
-      if(p.acompNome.trim())det.push(p.acompNome.trim());
-      if(p.acompParentesco.trim())det.push(p.acompParentesco.trim());
-      head.push("com seu acompanhante"+(det.length?" ("+det.join(", ")+")":""));
-    }else if(p.acompanhante==="Não"){
-      head.push("sem acompanhante");
-    }
-
-    var status=[];
-    if(p.drenos==="Sim"){
-      var d="com dreno(s)";
-      if(p.drenoFuncao)d+=", "+(p.drenoFuncao==="Funcionante"?"funcionante":"não funcionante");
-      if(p.drenoSecrecao)d+=", secreção "+p.drenoSecrecao.toLowerCase();
-      status.push(d);
-    }else if(p.drenos==="Não"){status.push("sem drenos");}
-    if(p.svd)status.push(p.svd==="Sim"?"com SVD":"sem SVD");
-    if(p.diurese)status.push(p.diurese==="Presente"?"diurese presente":"diurese ausente");
-    if(p.alimentacao)status.push(p.alimentacao==="Normal"?"aceitando dieta normalmente":"com aceitação diminuída da dieta");
-    if(status.length)head.push("no momento "+status.join(", "));
-
-    var evo=head.join(", ")+".";
-
-    var sym=[];
-    if(p.nvpo)sym.push(p.nvpo==="Sim"?"apresenta náuseas e/ou vômitos pós-operatórios":"nega náuseas ou vômitos pós-operatórios");
-    if(p.algicas==="Sim"){
-      sym.push("refere queixas álgicas"+(p.algiaLocal.trim()?" em "+p.algiaLocal.trim():""));
-    }else if(p.algicas==="Não"){sym.push("nega queixas álgicas");}
-    if(sym.length)evo+="\n"+cap(sym.join(", "))+".";
-
-    if(p.conduta.trim())evo+="\n\nCD: "+stripDot(p.conduta.trim())+".";
-    if(p.notas.trim())evo+="\n\n\n## Notas\n"+p.notas.trim();
-
-    return evo;
-  }
-
-  var resultWrap=$("resultWrap"),resumoEl=$("resumo");
-  function hideResult(){resultWrap.style.display="none";}
-  function showResult(txt){resumoEl.value=txt;resultWrap.style.display="block";resultWrap.scrollIntoView({behavior:"smooth",block:"nearest"});}
-  function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},1600);}
-
-  $("btnGen").onclick=function(){showResult(build(state.current));};
-  $("btnClear").onclick=function(){
-    if(!confirm("Limpar todos os dados do Apto "+state.current+"?"))return;
-    state.aptos[state.current]=blank();save();renderForm();markBed();hideResult();
-  };
-  $("btnCopy").onclick=function(){
-    var txt=resumoEl.value;
-    function ok(){toast("Resumo copiado");}
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,fallback);}else fallback();
-    function fallback(){resumoEl.focus();resumoEl.select();try{document.execCommand("copy");ok();}catch(e){toast("Selecione e copie manualmente");}}
-  };
-  $("btnMail").onclick=function(){
-    var p=state.aptos[state.current];
-    var dt=new Date().toLocaleDateString("pt-BR");
-    var subj="Evolução — Apto "+state.current+(p.nome.trim()?" — "+p.nome.trim():"")+" — "+dt;
-    var to=state.destEmail.trim();
-    window.location.href="mailto:"+encodeURIComponent(to)+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(resumoEl.value);
-  };
-
-  load();
-  var destInput=$("destEmail");
-  destInput.value=state.destEmail;
-  destInput.oninput=function(){state.destEmail=destInput.value;save();};
-
-  renderBeds();renderForm();
-})();
-</script>
-</body>
-</html>
+function dataFor(scope){return scope==='identity'?patient():scope==='current'?(visit().current||=( {})):visit()}document.addEventListener('input',e=>{const t=e.target;if(t.dataset.key){dataFor(t.dataset.scope)[t.dataset.key]=t.value;save();if(t.dataset.key==='name')renderBeds();if(period==='day')refreshComparison()}if(t.id==='conduct'||t.id==='notes'){visit()[t.id]=t.value;save()}if(t.id==='summary'){patient().summary=t.value;save()}if(t.id==='email'){state.email=t.value;save()}});document.addEventListener('click',e=>{let b=e.target.closest('button');if(!b)return;if(b.dataset.bed!==undefined){bed=Number(b.dataset.bed);render()}if(b.dataset.period){period=b.dataset.period;render()}if(b.dataset.choice){const d=dataFor(b.dataset.scope),k=b.dataset.choice;d[k]=d[k]===b.dataset.value?'':b.dataset.value;save();if(b.dataset.scope==='identity')render();else renderClinical()}});
+async function copy(text){if(!text.trim()){toast('Gere a evolução antes de copiar.');return}try{await navigator.clipboard.writeText(text);toast('Texto copiado.')}catch(e){const a=document.createElement('textarea');a.value=text;(document.querySelector('dialog[open]')||document.body).append(a);a.select();const ok=document.execCommand('copy');a.remove();toast(ok?'Texto copiado.':'Selecione o texto e copie manualmente.')}}function email(text,subject){if(!text.trim()){toast('Gere a evolução antes de enviar.');return}if(state.email&&!$('email').checkValidity()){toast('Confira o endereço de e-mail.');return}location.href='mailto:'+encodeURIComponent(state.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(text)}
+$('generateBtn').onclick=()=>{patient().summary=generate(patient());save();render();toast('Evolução pronta para revisar.');if(innerWidth<801)$('summary').scrollIntoView({behavior:'smooth',block:'center'})};$('clearBtn').onclick=()=>{if(confirm('Limpar todos os dados e as duas avaliações do Apartamento '+(bed+1)+'?')){state.beds[bed]=blank();save();render();toast('Apartamento limpo.')}};$('copyBtn').onclick=()=>copy($('summary').value);$('emailBtn').onclick=()=>email($('summary').value,`Evolução — Apto ${bed+1} — ${patient().name} — ${new Date().toLocaleDateString('pt-BR')}`);function compile(){$('compiled').value=state.beds.flatMap((p,i)=>p.summary?[`APTO ${i+1}\n${p.summary}`]:[]).join('\n\n────────────────────\n\n');$('compiled').placeholder='Gere as evoluções dos apartamentos para reuni-las aqui.'}$('compileBtn').onclick=()=>{compile();$('compile').showModal()};$('closeCompile').onclick=()=>$('compile').close();$('copyAll').onclick=()=>copy($('compiled').value);$('emailAll').onclick=()=>email($('compiled').value,'Evoluções — '+new Date().toLocaleDateString('pt-BR'));
+$('date').textContent=new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long'});$('privacy').innerHTML=icon('shield')+'Dados neste aparelho';$('avatar').innerHTML=icon('user');$('compileBtn').innerHTML=icon('layers')+'Compilado da visita';$('copyBtn').innerHTML=icon('copy')+'Copiar';$('emailBtn').innerHTML=icon('mail')+'E-mail';$('clearBtn').innerHTML=icon('trash')+'Limpar';$('generateBtn').innerHTML=icon('spark')+'Gerar evolução';$('empty').innerHTML=icon('note')+'<strong>O cuidado vira registro.</strong><p>Preencha a avaliação e gere sua evolução para revisar aqui.</p>';$('hint').innerHTML=icon('shield')+'Os registros ficam neste navegador. Revise a evolução antes de copiar ou enviar.';document.querySelectorAll('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon));$('email').value=state.email;state.beds.forEach(p=>{if(!p.summary&&(p.night.summary||p.day.summary))p.summary=generate(p)});render();save();
+</script></body></html>
